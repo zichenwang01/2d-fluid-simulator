@@ -231,7 +231,7 @@ def create_boundary_condition1(resolution, no_dye=False):
         # r = y_res // 9
         # c = (x_res // 3, y_res // 2)
         r = config.r
-        c = ()
+        c = (config.cx, config.cy)
         set_circle(bc, bc_mask, bc_dye, c, r)
 
     set_inflow()
