@@ -26,7 +26,7 @@ def main():
     
     # reynolds number argument
     parser.add_argument(
-        "-re", "--reynolds_num", help="Reynolds number", type=float, default=1000000.0
+        "-re", "--reynolds_num", help="Reynolds number", type=float, default=150.0
     )
     
     # grid resolution argument
@@ -96,6 +96,7 @@ def main():
     else:
         device_memory_GB = 2.0 if resolution > 1000 else 1.0
         ti.init(arch=ti.gpu, device_memory_GB=device_memory_GB)
+    print(f"Device is cpu: {args.cpu}")
 
     # print parameters
     print(f"Boundary Condition: {n_bc}")
@@ -106,68 +107,69 @@ def main():
     print(f"Vorticity Confinement: {vor_eps}")
     print(f"dye calculation: {not no_dye}")
 
-    for i in range(2):
-        print('-----------------------------------')
-        
-        # random initializations
-        config.v0 = np.random.uniform(0.5, 1.5)
-        config.r = np.random.randint(10, 20)
-        config.cx = np.random.randint(30, 60)
-        config.cy = np.random.randint(30, 90)
-        print("v0: ", config.v0)
-        print("r: ", config.r)
-        print("cx: ", config.cx)
-        print("cy: ", config.cy)
-        
-        # create output directory
-        output_path = Path(__file__).parent.resolve() / "output" / \
-            f"v0={config.v0}_r={config.r}_cx={config.cx}_cy={config.cy}"
-        os.makedirs(output_path, exist_ok=True)
-        print(f"Output Path: {output_path}")
-        
-        img_path = output_path / "img"
-        os.makedirs(img_path, exist_ok=True)
-        
-        data_path = output_path / "data"
-        os.makedirs(data_path, exist_ok=True)
+    for i in range(50):
+        for j in range(1000):
+            print('-----------------------------------')
+            
+            # random initializations
+            config.v0 = np.random.uniform(0.5, 3)
+            config.r = np.random.randint(5, 20)
+            config.cx = np.random.randint(30, 60)
+            config.cy = np.random.randint(30, 90)
+            print("v0: ", config.v0)
+            print("r: ", config.r)
+            print("cx: ", config.cx)
+            print("cy: ", config.cy)
+            
+            # create output directory
+            output_path = Path(__file__).parent.resolve() / f"output{i}" / \
+                f"v0={config.v0}_r={config.r}_cx={config.cx}_cy={config.cy}"
+            os.makedirs(output_path, exist_ok=True)
+            print(f"Output Path: {output_path}")
+            
+            img_path = output_path / "img"
+            os.makedirs(img_path, exist_ok=True)
+            
+            data_path = output_path / "data"
+            os.makedirs(data_path, exist_ok=True)
 
-        # load simulator
-        if no_dye:
-            fluid_sim = FluidSimulator.create(n_bc, resolution, dt, dx, re, vor_eps, scheme)
-        else:
-            fluid_sim = DyeFluidSimulator.create(n_bc, resolution, dt, dx, re, vor_eps, scheme)
+            # load simulator
+            if no_dye:
+                fluid_sim = FluidSimulator.create(n_bc, resolution, dt, dx, re, vor_eps, scheme)
+            else:
+                fluid_sim = DyeFluidSimulator.create(n_bc, resolution, dt, dx, re, vor_eps, scheme)
 
-        for step in range(2000):
-            # simulate one step
-            fluid_sim.step()
+            for step in range(2001):
+                # simulate one step
+                fluid_sim.step()
 
-            # save simulation every 10 steps
-            if step % 100 == 0:
-                # save norm img
-                img_norm = fluid_sim.get_norm_field()
-                ti.tools.imwrite(img_norm, str(img_path / f"{step:03}_norm.png"))
-                
-                # save pressure img
-                img_pressure = fluid_sim.get_pressure_field()
-                ti.tools.imwrite(img_pressure, str(img_path / f"{step:03}_pressure.png"))
-                
-                # save vorticity img
-                img_vorticity = fluid_sim.get_vorticity_field()
-                ti.tools.imwrite(img_vorticity, str(img_path / f"{step:03}_vorticity.png"))
-                
-                # save pressure data
-                pressure = fluid_sim._solver.p.current.to_numpy()
-                np.save(str(data_path / f"{step:03}_pressure.npy"), pressure)
-                
-                # save x velocity data
-                vx = fluid_sim._solver.v.current.to_numpy()[:, :, 0]
-                vx = vx.reshape(-1, resolution)
-                np.save(str(data_path / f"{step:03}_vx.npy"), vx)
-                
-                # save y velocity data
-                vy = fluid_sim._solver.v.current.to_numpy()[:, :, 1]
-                vy = vy.reshape(-1, resolution)
-                np.save(str(data_path / f"{step:03}_vy.npy"), vy)
+                # save simulation every 10 steps
+                if step % 100 == 0:
+                    # save norm img
+                    img_norm = fluid_sim.get_norm_field()
+                    ti.tools.imwrite(img_norm, str(img_path / f"{step:03}_norm.png"))
+                    
+                    # save pressure img
+                    img_pressure = fluid_sim.get_pressure_field()
+                    ti.tools.imwrite(img_pressure, str(img_path / f"{step:03}_pressure.png"))
+                    
+                    # save vorticity img
+                    img_vorticity = fluid_sim.get_vorticity_field()
+                    ti.tools.imwrite(img_vorticity, str(img_path / f"{step:03}_vorticity.png"))
+                    
+                    # save pressure data
+                    pressure = fluid_sim._solver.p.current.to_numpy()
+                    np.save(str(data_path / f"{step:03}_pressure.npy"), pressure)
+                    
+                    # save x velocity data
+                    vx = fluid_sim._solver.v.current.to_numpy()[:, :, 0]
+                    vx = vx.reshape(-1, resolution)
+                    np.save(str(data_path / f"{step:03}_vx.npy"), vx)
+                    
+                    # save y velocity data
+                    vy = fluid_sim._solver.v.current.to_numpy()[:, :, 1]
+                    vy = vy.reshape(-1, resolution)
+                    np.save(str(data_path / f"{step:03}_vy.npy"), vy)
             
             
 if __name__ == "__main__":
