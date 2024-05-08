@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 import taichi as ti
 
+import config
 from differentiation import sample
 
 
@@ -205,7 +206,8 @@ def create_boundary_condition1(resolution, no_dye=False):
 
     # 流入部の設定
     def set_inflow():
-        bc[:2, :] = np.array([5.0, 0.0])
+        # bc[:2, :] = np.array([1.0, 0.0])
+        bc[:2, :] = np.array([config.v0, 0.0]) # custom
         bc_mask[:2, :] = 2
 
         y = np.array([1.1, 1.1, 0.2])
@@ -215,22 +217,6 @@ def create_boundary_condition1(resolution, no_dye=False):
         color_map = create_color_map([c, r, b, y] * 3, bc_dye.shape[1])
         bc_dye[:2, :] = np.stack((color_map, color_map), axis=0)
 
-    # # 流入部の設定
-    # l = int(resolution // 3)
-    # r = int(2 * resolution // 3)
-    
-    # y = np.array([1.1, 1.1, 0.2])
-    # b = np.array([0.2, 0.2, 1.1])
-    # r = np.array([1.1, 0.2, 0.2])
-    # c = np.array([0.2, 1.1, 1.1])
-    # color_map = create_color_map([c, r, b, y] * 3, bc_dye.shape[1])
-    
-    # for i in range(2):
-    #     for j in range(l, r):
-    #         bc[i, j] = np.array([1.0, 0.0])
-    #         bc_mask[i, j] = 2
-    #         # bc_dye = color_map
-
     # 流出部の設定
     def set_outflow():
         bc[-1, :] = np.array([0.0, 0.0])
@@ -238,12 +224,14 @@ def create_boundary_condition1(resolution, no_dye=False):
 
     # 壁の設定
     def set_wall():
-        # set_plane(bc, bc_mask, bc_dye, (0, 0), (x_res, 2))  # 下
-        # set_plane(bc, bc_mask, bc_dye, (0, y_res - 2), (x_res, y_res))  # 上
+        set_plane(bc, bc_mask, bc_dye, (0, 0), (x_res, 2))  # 下
+        set_plane(bc, bc_mask, bc_dye, (0, y_res - 2), (x_res, y_res))  # 上
 
         # 円柱の設定
-        r = y_res // 9
-        c = (x_res // 3, y_res // 2)
+        # r = y_res // 9
+        # c = (x_res // 3, y_res // 2)
+        r = config.r
+        c = ()
         set_circle(bc, bc_mask, bc_dye, c, r)
 
     set_inflow()

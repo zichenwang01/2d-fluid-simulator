@@ -81,7 +81,8 @@ def main():
     n_bc = args.boundary_condition
     re = args.reynolds_num
     resolution = args.resolution
-    dt = args.time_step if args.time_step != 0.0 else 0.05 / resolution
+    # dt = args.time_step if args.time_step != 0.0 else 0.05 / resolution
+    dt = args.time_step if args.time_step != 0.0 else 0.0005
     vis_num = args.visualization
     no_dye = args.no_dye
     scheme = args.advection_scheme
@@ -123,12 +124,12 @@ def main():
     os.makedirs(data_path, exist_ok=True)
 
     step = 0
-    for step in range(10000):
+    for step in range(2000):
         # simulate one step
         fluid_sim.step()
 
         # save simulation every 10 steps
-        if step % 500 == 0:
+        if step % 100 == 0:
             # save norm img
             img_norm = fluid_sim.get_norm_field()
             ti.tools.imwrite(img_norm, str(img_path / f"{step:03}_norm.png"))
@@ -149,7 +150,15 @@ def main():
             pressure = fluid_sim._solver.p.current.to_numpy()
             np.save(str(data_path / f"{step:03}_pressure.npy"), pressure)
             
-            # fluid_sim._solver.v
+            # save x velocity data
+            vx = fluid_sim._solver.v.current.to_numpy()[:, :, 0]
+            vx = vx.reshape(-1, resolution)
+            np.save(str(data_path / f"{step:03}_vx.npy"), vx)
+            
+            # save y velocity data
+            vy = fluid_sim._solver.v.current.to_numpy()[:, :, 1]
+            vy = vy.reshape(-1, resolution)
+            np.save(str(data_path / f"{step:03}_vy.npy"), vy)
             
             
 

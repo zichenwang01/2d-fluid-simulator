@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 import taichi as ti
+import numpy as np
 
 from differentiation import diff2_x, diff2_y, diff_x, diff_y, sign
 
@@ -194,6 +195,17 @@ class CipMacSolver(Solver):
         self.p = DoubleBuffers(self._resolution, 1)  # pressure
 
         self._set_grad(self.vx.current, self.vy.current, self.v.current)
+        
+        # # random initialization
+        # v_np = np.random.rand(*self._resolution, 2) 
+        # self.v.current.from_numpy(v_np) 
+        # vx_np = np.gradient(self.v.current[..., 0])
+        # self.vx.current.from_numpy(vx_np)
+        # vy_np = np.gradient(self.v.current[..., 1])
+        # self.vy.current.from_numpy(vy_np)
+        # p_np = np.random.rand(*self._resolution)
+        # self.p.current.from_numpy(p_np)
+        
 
     def update(self):
         self._bc.set_velocity_boundary_condition(self.v.current)
