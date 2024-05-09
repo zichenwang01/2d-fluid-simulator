@@ -83,7 +83,7 @@ def main():
     re = args.reynolds_num
     resolution = args.resolution
     # dt = args.time_step if args.time_step != 0.0 else 0.05 / resolution
-    dt = args.time_step if args.time_step != 0.0 else 0.0005
+    dt = args.time_step if args.time_step != 0.0 else 0.001
     vis_num = args.visualization
     no_dye = args.no_dye
     scheme = args.advection_scheme
@@ -116,9 +116,9 @@ def main():
         print(f"Output Path: {output_path}")
         
         # all data
-        all_pressure = np.zeros((1000, resolution, resolution, 21))
-        all_vx = np.zeros((1000, resolution, resolution, 21))
-        all_vy = np.zeros((1000, resolution, resolution, 21))
+        all_pressure = np.zeros((1000, resolution, resolution, 11))
+        all_vx = np.zeros((1000, resolution, resolution, 11))
+        all_vy = np.zeros((1000, resolution, resolution, 11))
         
         # all parameters
         all_v0 = np.zeros(1000)
@@ -127,7 +127,7 @@ def main():
         all_cy = np.zeros(1000)
         
         for j in range(1000):
-            print(f'------------------- SIMULATION{j} -------------------')
+            print('simulation: ', j)
             
             # random initializations
             config.v0 = np.random.uniform(0.5, 3)
@@ -141,10 +141,10 @@ def main():
             all_cx[j] = config.cx
             all_cy[j] = config.cy
             
-            print("v0: ", config.v0)
-            print("r: ", config.r)
-            print("cx: ", config.cx)
-            print("cy: ", config.cy)
+            # print("v0: ", config.v0)
+            # print("r: ", config.r)
+            # print("cx: ", config.cx)
+            # print("cy: ", config.cy)
             
             # # create output directory
             # output_path = Path(__file__).parent.resolve() / f"output{i}" / \
@@ -164,12 +164,12 @@ def main():
             else:
                 fluid_sim = DyeFluidSimulator.create(n_bc, resolution, dt, dx, re, vor_eps, scheme)
 
-            for step in range(2001):
+            for step in range(201):
                 # simulate one step
                 fluid_sim.step()
 
                 # save simulation every 10 steps
-                if step % 100 == 0:
+                if step % 20 == 0:
                     # # save norm img
                     # img_norm = fluid_sim.get_norm_field()
                     # ti.tools.imwrite(img_norm, str(img_path / f"{step:03}_norm.png"))
@@ -184,19 +184,19 @@ def main():
                     
                     # save pressure data
                     pressure = fluid_sim._solver.p.current.to_numpy()
-                    all_pressure[j, :, :, int(step/100)] = pressure
+                    all_pressure[j, :, :, int(step/20)] = pressure
                     # np.save(str(data_path / f"{step:03}_pressure.npy"), pressure)
                     
                     # save x velocity data
                     vx = fluid_sim._solver.v.current.to_numpy()[:, :, 0]
                     vx = vx.reshape(-1, resolution)
-                    all_vx[j, :, :, int(step/100)] = vx
+                    all_vx[j, :, :, int(step/20)] = vx
                     # np.save(str(data_path / f"{step:03}_vx.npy"), vx)
                     
                     # save y velocity data
                     vy = fluid_sim._solver.v.current.to_numpy()[:, :, 1]
                     vy = vy.reshape(-1, resolution)
-                    all_vy[j, :, :, int(step/100)] = vy
+                    all_vy[j, :, :, int(step/20)] = vy
                     # np.save(str(data_path / f"{step:03}_vy.npy"), vy)
             
         # save all data

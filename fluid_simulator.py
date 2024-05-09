@@ -12,7 +12,6 @@ from visualization import visualize_norm, visualize_pressure, visualize_vorticit
 class FluidSimulator:
     def __init__(self, solver):
         self._solver = solver
-        print('solver._resolution:', solver._resolution)
         self.rgb_buf = ti.Vector.field(3, ti.f32, shape=solver._resolution)  # image buffer
         # self._wall_color = ti.Vector([0.5, 0.7, 0.5])
         self._wall_color = ti.Vector([0.0, 1.0, 0.0])
