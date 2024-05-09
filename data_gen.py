@@ -107,31 +107,56 @@ def main():
     print(f"Vorticity Confinement: {vor_eps}")
     print(f"dye calculation: {not no_dye}")
 
-    for i in range(50):
+    for i in range(51):
+        print(f'------------------- OUTPUT{i} -------------------')
+        
+        # create output directory
+        output_path = Path(__file__).parent.resolve() / "output" / str(i)
+        os.makedirs(output_path, exist_ok=True)
+        print(f"Output Path: {output_path}")
+        
+        # all data
+        all_pressure = np.zeros((1000, resolution, resolution, 21))
+        all_vx = np.zeros((1000, resolution, resolution, 21))
+        all_vy = np.zeros((1000, resolution, resolution, 21))
+        
+        # all parameters
+        all_v0 = np.zeros(1000)
+        all_r = np.zeros(1000)
+        all_cx = np.zeros(1000)
+        all_cy = np.zeros(1000)
+        
         for j in range(1000):
-            print('-----------------------------------')
+            print(f'------------------- SIMULATION{j} -------------------')
             
             # random initializations
             config.v0 = np.random.uniform(0.5, 3)
             config.r = np.random.randint(5, 20)
             config.cx = np.random.randint(30, 60)
             config.cy = np.random.randint(30, 90)
+            
+            # save parameters
+            all_v0[j] = config.v0
+            all_r[j] = config.r
+            all_cx[j] = config.cx
+            all_cy[j] = config.cy
+            
             print("v0: ", config.v0)
             print("r: ", config.r)
             print("cx: ", config.cx)
             print("cy: ", config.cy)
             
-            # create output directory
-            output_path = Path(__file__).parent.resolve() / f"output{i}" / \
-                f"v0={config.v0}_r={config.r}_cx={config.cx}_cy={config.cy}"
-            os.makedirs(output_path, exist_ok=True)
-            print(f"Output Path: {output_path}")
+            # # create output directory
+            # output_path = Path(__file__).parent.resolve() / f"output{i}" / \
+            #     f"v0={config.v0}_r={config.r}_cx={config.cx}_cy={config.cy}"
+            # os.makedirs(output_path, exist_ok=True)
+            # print(f"Output Path: {output_path}")
             
-            img_path = output_path / "img"
-            os.makedirs(img_path, exist_ok=True)
+            # img_path = output_path / "img"
+            # os.makedirs(img_path, exist_ok=True)
             
-            data_path = output_path / "data"
-            os.makedirs(data_path, exist_ok=True)
+            # data_path = output_path / "data"
+            # os.makedirs(data_path, exist_ok=True)
 
             # load simulator
             if no_dye:
@@ -145,32 +170,44 @@ def main():
 
                 # save simulation every 10 steps
                 if step % 100 == 0:
-                    # save norm img
-                    img_norm = fluid_sim.get_norm_field()
-                    ti.tools.imwrite(img_norm, str(img_path / f"{step:03}_norm.png"))
+                    # # save norm img
+                    # img_norm = fluid_sim.get_norm_field()
+                    # ti.tools.imwrite(img_norm, str(img_path / f"{step:03}_norm.png"))
                     
-                    # save pressure img
-                    img_pressure = fluid_sim.get_pressure_field()
-                    ti.tools.imwrite(img_pressure, str(img_path / f"{step:03}_pressure.png"))
+                    # # save pressure img
+                    # img_pressure = fluid_sim.get_pressure_field()
+                    # ti.tools.imwrite(img_pressure, str(img_path / f"{step:03}_pressure.png"))
                     
-                    # save vorticity img
-                    img_vorticity = fluid_sim.get_vorticity_field()
-                    ti.tools.imwrite(img_vorticity, str(img_path / f"{step:03}_vorticity.png"))
+                    # # save vorticity img
+                    # img_vorticity = fluid_sim.get_vorticity_field()
+                    # ti.tools.imwrite(img_vorticity, str(img_path / f"{step:03}_vorticity.png"))
                     
                     # save pressure data
                     pressure = fluid_sim._solver.p.current.to_numpy()
-                    np.save(str(data_path / f"{step:03}_pressure.npy"), pressure)
+                    all_pressure[j, :, :, int(step/100)] = pressure
+                    # np.save(str(data_path / f"{step:03}_pressure.npy"), pressure)
                     
                     # save x velocity data
                     vx = fluid_sim._solver.v.current.to_numpy()[:, :, 0]
                     vx = vx.reshape(-1, resolution)
-                    np.save(str(data_path / f"{step:03}_vx.npy"), vx)
+                    all_vx[j, :, :, int(step/100)] = vx
+                    # np.save(str(data_path / f"{step:03}_vx.npy"), vx)
                     
                     # save y velocity data
                     vy = fluid_sim._solver.v.current.to_numpy()[:, :, 1]
                     vy = vy.reshape(-1, resolution)
-                    np.save(str(data_path / f"{step:03}_vy.npy"), vy)
+                    all_vy[j, :, :, int(step/100)] = vy
+                    # np.save(str(data_path / f"{step:03}_vy.npy"), vy)
             
+        # save all data
+        np.save(str(output_path) + "/pressure.npy", all_pressure)
+        np.save(str(output_path) + "/vx.npy", all_vx)
+        np.save(str(output_path) + "/vy.npy", all_vy)
+        np.save(str(output_path) + "/v0.npy", all_v0)
+        np.save(str(output_path) + "/r.npy", all_r)
+        np.save(str(output_path) + "/cx.npy", all_cx)
+        np.save(str(output_path) + "/cy.npy", all_cy)
+
             
 if __name__ == "__main__":
     main()
